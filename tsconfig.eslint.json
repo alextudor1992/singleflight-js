@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["./src", "jest.config.ts"],
+  "include": ["./src", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "noEmit": true,
