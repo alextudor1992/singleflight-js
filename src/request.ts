@@ -9,7 +9,7 @@
  *
  */
 
-import { from, lastValueFrom, Observable, takeLast, timeout } from 'rxjs'
+import { finalize, from, lastValueFrom, Observable, pipe, shareReplay, takeLast, timeout } from 'rxjs'
 
 type RequestOptions = {
   timeoutMs?: number
@@ -17,29 +17,27 @@ type RequestOptions = {
 
 const singleFlightRequests = new Map<string, Observable<unknown>>()
 
-export async function request<T>(key: string, fn: () => Promise<T>, opts?: RequestOptions) {
+export async function request<T>(key: string, fn: () => Promise<T>, opts?: RequestOptions): Promise<T> {
   let observable = singleFlightRequests.get(key)
 
   if (!observable) {
-    observable = from(new Promise((resolve) => void fn().then(resolve)))
-      .pipe(takeLast(1))
-
-    if (opts?.timeoutMs) {
-      observable = observable.pipe(timeout(opts.timeoutMs))
-    }
-
-    const cleanup = () => singleFlightRequests.delete(key)
-
-    observable.subscribe({
-      complete: cleanup,
-      error: cleanup,
-    })
-
+    observable = from(fn()).pipe(
+      opts?.timeoutMs ? timeout(opts.timeoutMs) : pipe(),
+      shareReplay({ bufferSize: 1, refCount: true }),
+      takeLast(1),
+      finalize(() => singleFlightRequests.delete(key))
+    )
     singleFlightRequests.set(key, observable)
   }
-  return await lastValueFrom(observable)
+  return await lastValueFrom(observable as Observable<T>)
 }
 
-export function cancel(key: string) {
+/**
+ * Removes a pending request from the single-flight cache.
+ * Note: This does NOT cancel the in-flight request for existing subscribers.
+ * It only ensures that the *next* call to `request` for this key will
+ * trigger a new execution of `fn()`.
+ */
+export function forget(key: string) {
   return singleFlightRequests.delete(key)
 }

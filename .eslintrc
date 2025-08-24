@@ -9,7 +9,7 @@
     "sourceType": "module"
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier", "spellcheck", "more", "promise"],
+  "plugins": ["@typescript-eslint", "prettier", "promise", "rxjs"],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
@@ -26,17 +26,5 @@
     "prefer-arrow-callback": "off",
     "@typescript-eslint/no-unsafe-argument": "off",
     "@typescript-eslint/no-unused-vars": "warn"
-  },
-  "overrides": [
-    {
-      "env": {
-        "jest": true,
-        "jest/globals": true
-      },
-      "files": ["*.test.ts", "*.spec.ts"],
-      "plugins": ["jest"],
-      "extends": ["plugin:jest/recommended"],
-      "rules": { "jest/prefer-expect-assertions": "off" }
-    }
-  ]
+  }
 }
