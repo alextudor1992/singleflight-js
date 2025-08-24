@@ -1,15 +1,4 @@
-/*
- * Copyright (c) 2025 Intent. All rights reserved.
- *
- * This source code is confidential and proprietary information of
- * Intent ("Confidential Information"). You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Intent.
- *
- */
-
-import { finalize, from, lastValueFrom, Observable, pipe, shareReplay, takeLast, timeout } from 'rxjs'
+import { finalize, from, lastValueFrom, Observable, pipe, shareReplay, timeout } from 'rxjs'
 
 type RequestOptions = {
   timeoutMs?: number
@@ -24,7 +13,6 @@ export async function request<T>(key: string, fn: () => Promise<T>, opts?: Reque
     observable = from(fn()).pipe(
       opts?.timeoutMs ? timeout(opts.timeoutMs) : pipe(),
       shareReplay({ bufferSize: 1, refCount: true }),
-      takeLast(1),
       finalize(() => singleFlightRequests.delete(key))
     )
     singleFlightRequests.set(key, observable)
